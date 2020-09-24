@@ -44,13 +44,32 @@ public class MainActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 Log.e("Permission error","You have permission");
+                haveStoragePermission();
             }
         }
 
     }
     public void DownloadMyVideo(View view) {
         if(haveStoragePermission()) {
+            YoutubeUriExtractor youTubeUriExtractor = new YoutubeUriExtractor(MainActivity.this) {
+                @Override
+                public void onUrisAvailable(String videoId, String videoTitle, SparseArray<YTFile> ytFiles) {
+                    if (ytFiles != null) {
+                        int tag = 22;
+                        newLink = ytFiles.get(tag).getUrl();
+                        String title = "MyDrama";
+                        DownloadManager.Request request = new DownloadManager.Request(Uri.parse(newLink));
+                        request.setTitle(title);
+                        request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, title + ".mp4");
+                        DownloadManager downloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
+                        request.allowScanningByMediaScanner();
+                        request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_MOBILE | DownloadManager.Request.NETWORK_WIFI);
+                        downloadManager.enqueue(request);
+                    }
+                }
 
+            };
+            youTubeUriExtractor.execute(downloadLink);
         }
     }
     public  boolean haveStoragePermission() {
